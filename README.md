@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# page-fe
-=======
 # P 프로젝트 - 수화 학습 웹 제작
 React를 이용하여 프론트 구성
 
@@ -68,4 +65,3 @@ React를 이용하여 프론트 구성
 │   └── App.css  
 └── package.json  
   
->>>>>>> first/test
