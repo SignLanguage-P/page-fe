@@ -1,3 +1,49 @@
-.App {
-  text-align: center;
+/* 전역 스타일 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 레이아웃 */
+.app {
+  min-height: 100vh;
+}
+
+/* 네인 페이지 스타일 */
+.home-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 70px);
+  padding: 2rem;
+}
+
+.main-buttons {
+  display: flex;
+  gap: 2rem;
+}
+
+.large-button {
+  padding: 20px 40px;
+  font-size: 1.2rem;
+  background-color: #90EE90;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.large-button:hover {
+  transform: translateY(-3px);
+  background-color: #7CCD7C;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .main-buttons {
+    flex-direction: column;
+  }
 }

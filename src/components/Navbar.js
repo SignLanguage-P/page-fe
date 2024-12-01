@@ -1,22 +1,51 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.png';
 import '../css/Navbar.css';
 
-function Navbar({ isLoggedIn, onLogout }) {
+function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const menuItems = [
+    { path: '/learning', text: '학습' },
+    { path: '/quiz', text: '퀴즈' },
+    { path: '/profile', text: '마이페이지' },
+    { path: '/login', text: '로그인' }
+  ];
+
   return (
     <nav className="navbar">
-      <Link to="/">홈</Link>
-      {isLoggedIn ? (
-        <>
-          <Link to="/mypage">마이페이지</Link>
-          <button onClick={onLogout}>로그아웃</button>
-        </>
-      ) : (
-        <>
-          <Link to="/login">로그인</Link>
-          <Link to="/signup">회원가입</Link>
-        </>
-      )}
+      <div className="nav-content">
+        <div className="nav-logo" onClick={() => navigate('/')}>
+          <img src={logo} alt="로고" className="logo-image" />
+        </div>
+        
+        <div className={`nav-links ${isOpen ? 'active' : ''}`}>
+          {menuItems.map((item, index) => (
+            <button
+              key={index}
+              className={`nav-button ${location.pathname === item.path ? 'active' : ''}`}
+              onClick={() => {
+                navigate(item.path);
+                setIsOpen(false);
+              }}
+            >
+              {item.text}
+            </button>
+          ))}
+        </div>
+
+        <button 
+          className={`hamburger ${isOpen ? 'active' : ''}`} 
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
     </nav>
   );
 }
