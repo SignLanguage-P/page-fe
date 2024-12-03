@@ -13,6 +13,7 @@
   display: flex;
   flex-direction: column;
   gap: 40px;
+  align-items: center;
 }
 
 /* 히어로 섹션 */
@@ -47,8 +48,11 @@
 
 .action-buttons {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 20px;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
 }
 
 /* 액션 카드 */
