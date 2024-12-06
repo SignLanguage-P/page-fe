@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../css/QuizPage.css';
 
 function QuizPage() {
-  const [quiz, setQuiz] = useState('');
+  const [quiz, setQuiz] = useState(null);
   const [videoStream, setVideoStream] = useState(null);
-  const [answer, setAnswer] = useState('');
+  const [aiResult, setAiResult] = useState(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
         setVideoStream(stream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
       })
       .catch(error => {
         console.error('카메라 접근 실패:', error);
       });
 
-    // 임의의 퀴즈 설정
-    setQuiz('수화 단어 퀴즈');
+    fetchRandomQuiz();
 
     return () => {
       if (videoStream) {
@@ -25,19 +28,64 @@ function QuizPage() {
     };
   }, [videoStream]);
 
-  const checkAnswer = () => {
-    // 검증 코드 시작
-    if (answer === '1') {
-      alert('정답입니다!');
-    } else {
-      alert('오답입니다!');
-      sendWrongAnswer();
+  const fetchRandomQuiz = async () => {
+    try {
+      const response = await fetch('https://your-backend-api.com/api/quizzes/random');
+      const data = await response.json();
+      setQuiz(data);
+    } catch (error) {
+      console.error('퀴즈를 불러오는 데 실패했습니다:', error);
     }
-    // 검증 코드 끝
+  };
+
+  const checkAnswer = () => {
+    recognizeSignLanguage()
+      .then(result => {
+        setAiResult(result);
+        if (result === quiz.correctAnswer) {
+          alert('정답입니다!');
+        } else {
+          alert('오답입니다!');
+          sendWrongAnswer();
+        }
+      });
+  };
+
+  const recognizeSignLanguage = async () => {
+    try {
+      const frame = captureVideoFrame();
+      const response = await fetch('https://your-ai-api.com/api/recognize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ frame }),
+      });
+      const data = await response.json();
+      return data.result;
+    } catch (error) {
+      console.error('AI 모델 호출 실패:', error);
+      return '오류';
+    }
+  };
+
+  const captureVideoFrame = () => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (videoRef.current) {
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg');
+    }
+    return null;
   };
 
   const sendWrongAnswer = () => {
-    console.log('오답 전송:', { question: quiz, answer });
+    const wrongAnswers = JSON.parse(localStorage.getItem('wrongAnswers')) || [];
+    wrongAnswers.push({ question: quiz.question, answer: aiResult });
+    localStorage.setItem('wrongAnswers', JSON.stringify(wrongAnswers));
+    console.log('오답 전송:', { question: quiz.question, answer: aiResult });
   };
 
   return (
@@ -47,24 +95,20 @@ function QuizPage() {
         <video
           autoPlay
           playsInline
-          ref={video => {
-            if (video && videoStream) {
-              video.srcObject = videoStream;
-            }
-          }}
+          ref={videoRef}
         />
       </div>
       <div className="quiz-container">
-        <p>{quiz}</p>
-        <input
-          type="text"
-          value={answer}
-          onChange={e => setAnswer(e.target.value)}
-          placeholder="정답을 입력하세요"
-        />
-        <button onClick={checkAnswer}>제출</button>
-        <button>이전</button>
-        <button>다음</button>
+        {quiz ? (
+          <>
+            <p>{quiz.question} (난이도: {quiz.difficulty})</p>
+            <button onClick={checkAnswer}>제출</button>
+          </>
+        ) : (
+          <p>퀴즈를 불러오는 중...</p>
+        )}
+        <button onClick={fetchRandomQuiz}>다음 퀴즈</button>
+        {aiResult && <p>AI 결과: {aiResult}</p>}
       </div>
     </div>
   );

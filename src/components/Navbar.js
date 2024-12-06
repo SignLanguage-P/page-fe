@@ -11,8 +11,7 @@ function Navbar() {
   const menuItems = [
     { path: '/learning', text: '학습' },
     { path: '/quiz', text: '퀴즈' },
-    { path: '/profile', text: '마이페이지' },
-    { path: '/login', text: '로그인' }
+    { path: '/wrong-notes', text: '오답노트' }
   ];
 
   return (

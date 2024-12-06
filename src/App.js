@@ -3,8 +3,6 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Learning from './pages/Study';
 import Quiz from './pages/QuizPage';
-import UserProfile from './pages/MyPage';
-import Login from './pages/Login';
 import './App.css';
 
 function App() {
@@ -16,8 +14,6 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/quiz" element={<Quiz />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/login" element={<Login />} />
         </Routes>
       </div>
     </Router>
