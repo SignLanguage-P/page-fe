@@ -29,6 +29,7 @@ React를 이용하여 프론트 화면 구성
 - 퀴즈 화면과 비슷한 디자인
 
 ## 구조
+```
 page-fe/
  ┣ public/
  ┃ ┣ index.html
@@ -65,3 +66,4 @@ page-fe/
  ┣ package-lock.json
  ┣ package.json
  ┗ README.md
+```
