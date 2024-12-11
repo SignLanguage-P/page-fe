@@ -67,3 +67,7 @@ page-fe/
  ┣ package.json
  ┗ README.md
 ```
+
+## 구현 화면
+![메인화면]/assets/readme/메인화면.gif
+![학습화면]/assets/readme/학습화면.gif
