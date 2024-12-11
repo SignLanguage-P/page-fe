@@ -31,26 +31,27 @@ React를 이용하여 프론트 화면 구성
 ## 구조
 수화교육/  
 ├── public/  
-│   └── index.html  
+│   ├── index.html  
+│   ├── manifest.json 
+│   └── robots.txt
 ├── src/  
 │   ├──assets/  
-│   │   └──  
+│   │   └── logo.png
 │   ├── components/  
-│   │   ├── Navbar.js         // 상단바  
-│   │   ├── Sidebar.js        // 수강 사이드바  
-│   │   ├── Quiz.js           // 퀴즈 화면  
-│   │   ├── Learning.js       // 학습 화면  
-│   │   ├── UserProfile.js    // 기본정보 페이지  
-│   │   └── WrongNote.js      // 오답노트 페이지  
+│   │   ├── AlertModal.js        // 퀴즈 알림모달
+│   │   ├── Navbar.js            // 상단바  
+│   │   ├── Sidebar.js           // 학습 카테고리 사이드바  
+│   │   ├── QuizControl.js       // 퀴즈 질문 모달
+│   │   └── VideoStream.js       // 퀴즈 카메라 접근 모달
+│   ├── css/                     // 각 요소의 css  
+│   ├── data/         
+│   │   ├── categoryData.js      // 카테고리 데이터
+│   │   └── videoData.js         //  비디오 데이터 
 │   ├── pages/  
-│   │   ├── Home.js           // 메인 페이지  
-│   │   ├── Signup.js         // 회원가입 페이지  
-│   │   ├── Login.js          // 로그인 페이지  
-│   │   ├── MyPage.js         // 회원 페이지  
-│   │   ├── Category.js        // 카테고리 페이지  
-│   │   ├── Study.js          // 학습 화면  
-│   │   └── QuizPage.js       // 퀴즈 화면  
-│   ├── App.js  
+│   │   ├── Home.js             // 메인 페이지  
+│   │   ├── Study.js            // 학습 화면  
+│   │   └── QuizPage.js         // 퀴즈 화면  
+│   ├── App.js   
 │   ├── index.js  
 │   └── App.css  
 └── package.json  
