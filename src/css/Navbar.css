@@ -72,18 +72,6 @@
   border-radius: 2px;
 }
 
-/* 로그인 버튼 특별 스타일링 */
-.nav-button:last-child {
-  background-color: #FFA07A;
-  color: white;
-  padding: 8px 20px;
-}
-
-.nav-button:last-child:hover {
-  background-color: #FF8C61;
-  transform: translateY(-2px);
-}
-
 /* 햄버거 메뉴 */
 .hamburger {
   display: none;
@@ -157,10 +145,6 @@
 
   .nav-button.active::after {
     display: none;
-  }
-
-  .nav-button:last-child {
-    margin-top: 10px;
   }
 }
 

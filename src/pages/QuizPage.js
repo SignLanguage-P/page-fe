@@ -1,32 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import VideoStream from '../components/VideoStream';
+import QuizControls from '../components/QuizControls';
+import AlertModal from '../components/AlertModal';
 import '../css/QuizPage.css';
 
 function QuizPage() {
   const [quiz, setQuiz] = useState(null);
   const [videoStream, setVideoStream] = useState(null);
   const [aiResult, setAiResult] = useState(null);
-  const videoRef = useRef(null);
-
-  useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        setVideoStream(stream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      })
-      .catch(error => {
-        console.error('카메라 접근 실패:', error);
-      });
-
-    fetchRandomQuiz();
-
-    return () => {
-      if (videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [videoStream]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [quizCount, setQuizCount] = useState(0);
+  const navigate = useNavigate();
 
   const fetchRandomQuiz = async () => {
     try {
@@ -43,10 +29,22 @@ function QuizPage() {
       .then(result => {
         setAiResult(result);
         if (result === quiz.correctAnswer) {
-          alert('정답입니다!');
+          setModalMessage('정답입니다!');
+          setTimeout(() => {
+            if (quizCount < 4) {
+              fetchRandomQuiz();
+              setQuizCount(quizCount + 1);
+              setShowModal(false);
+            } else {
+              setModalMessage('축하합니다! 모든 퀴즈를 완료했습니다.');
+              setTimeout(() => {
+                navigate('/');
+              }, 3000);
+            }
+          }, 2000);
         } else {
-          alert('오답입니다!');
-          sendWrongAnswer();
+          setModalMessage('오답입니다! 잘 모르겠나요? [다시 학습하기]');
+          setShowModal(true);
         }
       });
   };
@@ -72,44 +70,37 @@ function QuizPage() {
   const captureVideoFrame = () => {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    if (videoRef.current) {
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    if (videoStream) {
+      canvas.width = videoStream.videoWidth;
+      canvas.height = videoStream.videoHeight;
+      context.drawImage(videoStream, 0, 0, canvas.width, canvas.height);
       return canvas.toDataURL('image/jpeg');
     }
     return null;
   };
 
-  const sendWrongAnswer = () => {
-    const wrongAnswers = JSON.parse(localStorage.getItem('wrongAnswers')) || [];
-    wrongAnswers.push({ question: quiz.question, answer: aiResult });
-    localStorage.setItem('wrongAnswers', JSON.stringify(wrongAnswers));
-    console.log('오답 전송:', { question: quiz.question, answer: aiResult });
+  const handleRetry = () => {
+    setShowModal(false);
+    // 다시 학습하기 로직 추가
   };
 
   return (
     <div className="quiz-page">
       <h2>퀴즈 화면</h2>
       <div className="video-container">
-        <video
-          autoPlay
-          playsInline
-          ref={videoRef}
-        />
+        <VideoStream onStreamReady={setVideoStream} />
       </div>
-      <div className="quiz-container">
-        {quiz ? (
-          <>
-            <p>{quiz.question} (난이도: {quiz.difficulty})</p>
-            <button onClick={checkAnswer}>제출</button>
-          </>
-        ) : (
-          <p>퀴즈를 불러오는 중...</p>
-        )}
-        <button onClick={fetchRandomQuiz}>다음 퀴즈</button>
-        {aiResult && <p>AI 결과: {aiResult}</p>}
-      </div>
+      <QuizControls quiz={quiz} aiResult={aiResult} onSubmit={checkAnswer} />
+      {showModal && (
+        <AlertModal
+          message={modalMessage}
+          onClose={() => setShowModal(false)}
+        >
+          {modalMessage.includes('오답입니다') && (
+            <button onClick={handleRetry}>다시 학습하기</button>
+          )}
+        </AlertModal>
+      )}
     </div>
   );
 }
