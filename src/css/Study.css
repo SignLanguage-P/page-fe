@@ -20,9 +20,10 @@
   padding: 20px;
 }
 
-video {
-  width: 640px;
-  height: 360px;
+iframe, video {
+  width: 800px;
+  height: 450px;
+  max-width: 100%;
   margin-bottom: 20px;
   object-fit: cover;
 }
@@ -45,5 +46,10 @@ video {
 
   .study-content {
     order: 1;
+  }
+
+  iframe, video {
+    width: 100%;
+    height: auto;
   }
 }

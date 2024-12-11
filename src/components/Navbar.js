@@ -9,9 +9,8 @@ function Navbar() {
   const location = useLocation();
 
   const menuItems = [
-    { path: '/learning', text: '학습' },
-    { path: '/quiz', text: '퀴즈' },
-    { path: '/wrong-notes', text: '오답노트' }
+    { path: '/learning', text: '학습하기' },
+    { path: '/quiz', text: '퀴즈풀기' }
   ];
 
   return (
