@@ -69,5 +69,6 @@ page-fe/
 ```
 
 ## 구현 화면
-![메인화면]/assets/readme/메인화면.gif
-![학습화면]/assets/readme/학습화면.gif
+![메인화면](https://github.com/user-attachments/assets/6109fb84-b890-4f0c-a607-5d4ee06007ea)
+
+![학습화면](https://github.com/user-attachments/assets/a38ccc8b-3074-485b-98a4-5b40f8ebde03)
