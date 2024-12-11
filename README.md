@@ -29,29 +29,39 @@ React를 이용하여 프론트 화면 구성
 - 퀴즈 화면과 비슷한 디자인
 
 ## 구조
-수화교육/  
-├── public/  
-│   ├── index.html  
-│   ├── manifest.json 
-│   └── robots.txt
-├── src/  
-│   ├──assets/  
-│   │   └── logo.png
-│   ├── components/  
-│   │   ├── AlertModal.js        // 퀴즈 알림모달
-│   │   ├── Navbar.js            // 상단바  
-│   │   ├── Sidebar.js           // 학습 카테고리 사이드바  
-│   │   ├── QuizControl.js       // 퀴즈 질문 모달
-│   │   └── VideoStream.js       // 퀴즈 카메라 접근 모달
-│   ├── css/                     // 각 요소의 css  
-│   ├── data/         
-│   │   ├── categoryData.js      // 카테고리 데이터
-│   │   └── videoData.js         //  비디오 데이터 
-│   ├── pages/  
-│   │   ├── Home.js             // 메인 페이지  
-│   │   ├── Study.js            // 학습 화면  
-│   │   └── QuizPage.js         // 퀴즈 화면  
-│   ├── App.js   
-│   ├── index.js  
-│   └── App.css  
-└── package.json  
+page-fe/
+ ┣ public/
+ ┃ ┣ index.html
+ ┃ ┣ manifest.json
+ ┃ ┗ robots.txt
+ ┣ src/
+ ┃ ┣ assets/           
+ ┃ ┃ ┗ logo.png                      // 로고
+ ┃ ┣ components/
+ ┃ ┃ ┣ AlertModal.js                 //퀴즈 정답 확인 알람
+ ┃ ┃ ┣ Navbar.js                     //상단바
+ ┃ ┃ ┣ QuizControls.js               //퀴즈 질문 확인
+ ┃ ┃ ┣ Sidebar.js                    //학습 카테고리 사이드바
+ ┃ ┃ ┗ VideoStream.js                //퀴즈 영상 모달
+ ┃ ┣ css/
+ ┃ ┃ ┣ AlertModal.css        
+ ┃ ┃ ┣ Home.css
+ ┃ ┃ ┣ Navbar.css
+ ┃ ┃ ┣ QuizPage.css
+ ┃ ┃ ┣ Sidebar.css
+ ┃ ┃ ┗ Study.css
+ ┃ ┣ data/
+ ┃ ┃ ┣ categoryData.js              //학습 카테고리 데이터
+ ┃ ┃ ┗ videoData.js                 //학습 영상 데이터
+ ┃ ┣ pages/
+ ┃ ┃ ┣ Home.js                      //메인 홈 화면
+ ┃ ┃ ┣ QuizPage.js                  //퀴즈 페이지
+ ┃ ┃ ┗ Study.js                     //학습 페이지
+ ┃ ┣ App.css
+ ┃ ┣ App.js
+ ┃ ┣ index.css
+ ┃ ┗ index.js
+ ┣ .gitignore
+ ┣ package-lock.json
+ ┣ package.json
+ ┗ README.md
