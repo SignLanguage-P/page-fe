@@ -49,7 +49,9 @@ page-fe/
  ┃ ┃ ┣ Sidebar.css
  ┃ ┃ ┗ Study.css
  ┃ ┣ data/
+ ┃ ┃ ┣ apiConfig.js                 //API 연결
  ┃ ┃ ┣ categoryData.js              //학습 카테고리 데이터
+ ┃ ┃ ┣ quizService.js               //퀴즈 서비스
  ┃ ┃ ┗ videoData.js                 //학습 영상 데이터
  ┃ ┣ pages/
  ┃ ┃ ┣ Home.js                      //메인 홈 화면
