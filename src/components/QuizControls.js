@@ -1,17 +1,22 @@
 import React from 'react';
 
-function QuizControls({ quiz, aiResult, onSubmit }) {
+function QuizControls({ quiz, onSubmit, loading }) {
   return (
-    <div className="quiz-container">
+    <div className="quiz-controls">
       {quiz ? (
         <>
-          <p>{quiz.question} (난이도: {quiz.difficulty})</p>
-          <button onClick={onSubmit}>제출</button>
+          <p className="quiz-question">{quiz.question}</p>
+          <button 
+            onClick={onSubmit}
+            disabled={loading}
+            className="submit-button"
+          >
+            {loading ? '처리 중...' : '제출'}
+          </button>
         </>
       ) : (
         <p>퀴즈를 불러오는 중...</p>
       )}
-      {aiResult && <p>AI 결과: {aiResult}</p>}
     </div>
   );
 }
