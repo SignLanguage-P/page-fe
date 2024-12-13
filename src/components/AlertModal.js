@@ -20,7 +20,7 @@ function AlertModal({ message, onClose }) {
     <div className="modal">
       <div className="modal-content">
         <p>{message}</p>
-        <button onClick={onClose}>닫기</button>
+        <button onClick={() => onClose()}>닫기</button>
       </div>
     </div>
   );

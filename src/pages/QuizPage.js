@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import VideoStream from '../components/VideoStream';
 import QuizControls from '../components/QuizControls';
 import AlertModal from '../components/AlertModal';
@@ -12,23 +11,42 @@ function QuizPage() {
   const [modalMessage, setModalMessage] = useState('');
   const [quizCount, setQuizCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [difficulty, setDifficulty] = useState('BEGINNER');
+  const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [cameraError, setCameraError] = useState(false);
+  
   const videoRef = useRef(null);
-  const navigate = useNavigate();
 
   const fetchRandomQuiz = async () => {
     try {
+      setLoading(true);
       const quizData = await quizService.fetchRandomQuiz();
       setQuiz(quizData);
     } catch (error) {
       console.error('퀴즈 로딩 오류:', error);
       setModalMessage('퀴즈를 불러오는데 실패했습니다.');
       setShowModal(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchRandomQuiz();
   }, []);
+
+  const handleError = (message) => {
+    if (!cameraError) {
+      setCameraError(true);
+      setModalMessage(message);
+      setShowModal(true);
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+  };
 
   const handleQuizSubmit = async () => {
     if (loading) return;
@@ -50,11 +68,11 @@ function QuizPage() {
             fetchRandomQuiz();
           } else {
             setModalMessage('축하합니다! 모든 퀴즈를 완료했습니다.');
-            setTimeout(() => navigate('/'), 3000);
+            setShowModal(true);
           }
         }, 2000);
       } else {
-        setModalMessage('오답입니다! 잘 모르겠나요? [다시 학습하기]');
+        setModalMessage('오답입니다! 다시 시도해보세요.');
         setShowModal(true);
       }
     } catch (error) {
@@ -66,36 +84,34 @@ function QuizPage() {
     }
   };
 
-  const handleError = (message) => {
-    setModalMessage(message);
-    setShowModal(true);
-  };
-
   return (
     <div className="quiz-page">
       <h2>퀴즈 화면</h2>
-      <div className="video-container">
-        <VideoStream 
-          ref={videoRef}
-          onError={handleError}
-        />
+      <div className="quiz-container">
+        <div className="quiz-content">
+          <QuizControls 
+            quiz={quiz}
+            onSubmit={handleQuizSubmit}
+            loading={loading}
+            difficulty={difficulty}
+            category={category}
+            categories={categories || []}
+            onDifficultyChange={setDifficulty}
+            onCategoryChange={setCategory}
+          />
+        </div>
+        <div className="video-container">
+          <VideoStream 
+            ref={videoRef}
+            onError={handleError}
+          />
+        </div>
       </div>
-      <QuizControls 
-        quiz={quiz}
-        onSubmit={handleQuizSubmit}
-        loading={loading}
-      />
       {showModal && (
         <AlertModal
           message={modalMessage}
-          onClose={() => setShowModal(false)}
-        >
-          {modalMessage.includes('오답입니다') && (
-            <button onClick={() => navigate('/study')}>
-              다시 학습하기
-            </button>
-          )}
-        </AlertModal>
+          onClose={handleModalClose}
+        />
       )}
     </div>
   );
