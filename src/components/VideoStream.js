@@ -1,57 +1,93 @@
-import React, { useEffect, useRef, useState } from 'react';
 
-function VideoStream({ onError }) {
-  const videoRef = useRef(null);
-  const [hasError, setHasError] = useState(false);
+import React, { useEffect, useState, forwardRef } from 'react';
+import AlertModal from './AlertModal';
+
+const VideoStream = forwardRef(({ onStreamReady, quizAnswer, onResultChange }, ref) => {
+  const [error, setError] = useState(null);
+  const [stream, setStream] = useState(null);
 
   useEffect(() => {
-    if (hasError) return;
+    let mounted = true;
 
     const setupCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+          },
+          audio: false
+        });
+        
+        if (!mounted) return;
+        
+        setStream(mediaStream);
+        
+        if (ref?.current) {
+          ref.current.srcObject = mediaStream;
+          ref.current.onloadedmetadata = () => {
+            if (!mounted) return;
+            
+            ref.current.play()
+              .then(() => {
+                if (!mounted) return;
+                console.log('비디오 재생 시작');
+                onStreamReady?.(ref.current);
+              })
+              .catch(err => {
+                if (!mounted) return;
+                console.error('비디오 재생 실패:', err);
+                setError('비디오 재생에 실패했습니다. 카메라 권한을 확인해주세요.');
+                onStreamReady?.(null);
+              });
+          };
         }
-      } catch (error) {
-        console.error('카메라 접근 실패:', error);
-        setHasError(true);
-        onError('카메라에 접근할 수 없습니다. 카메라 권한을 확인해주세요.');
+      } catch (err) {
+        if (!mounted) return;
+        console.error('카메라 초기화 오류:', err);
+        setError('카메라 접근에 실패했습니다. 카메라 권한을 확인해주세요.');
+        onStreamReady?.(null);
       }
     };
 
     setupCamera();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      mounted = false;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [onError, hasError]);
-
-  const captureFrame = () => {
-    const canvas = document.createElement('canvas');
-    if (videoRef.current) {
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
-      return canvas.toDataURL('image/jpeg').split(',')[1];
-    }
-    return null;
-  };
+  }, [onStreamReady, ref]);
 
   return (
-    <div className="video-wrapper">
-      <video 
-        ref={videoRef}
-        autoPlay 
-        playsInline 
-        muted
-        className="video-stream"
-      />
-      {hasError && <div className="video-placeholder" />}
+    <div className="video-stream-container">
+      <div className="video-wrapper">
+        <video
+          ref={ref}
+          className="video-stream"
+          playsInline
+          autoPlay
+          muted
+          style={{
+            width: '100%',
+            maxWidth: '640px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            backgroundColor: '#000000'
+          }}
+        />
+        {error && (
+          <div className="camera-error-overlay">
+            <p>{error}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+});
+
+VideoStream.displayName = 'VideoStream';
 
 export default VideoStream;

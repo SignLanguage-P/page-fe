@@ -1,116 +1,165 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import VideoStream from '../components/VideoStream';
 import QuizControls from '../components/QuizControls';
 import AlertModal from '../components/AlertModal';
-import { quizService } from '../data/quizService';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { fetchRandomQuiz } from '../data/quizService';
 import '../css/QuizPage.css';
 
 function QuizPage() {
   const [quiz, setQuiz] = useState(null);
+  const [videoStream, setVideoStream] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [quizCount, setQuizCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [difficulty, setDifficulty] = useState('BEGINNER');
-  const [category, setCategory] = useState('');
-  const [categories, setCategories] = useState([]);
   const [cameraError, setCameraError] = useState(false);
-  
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const navigate = useNavigate();
+
   const videoRef = useRef(null);
 
-  const fetchRandomQuiz = async () => {
+  const generateRandomQuiz = useCallback(async () => {
     try {
       setLoading(true);
-      const quizData = await quizService.fetchRandomQuiz();
+      setLoadError(false);
+      const quizData = await fetchRandomQuiz();
+
       setQuiz(quizData);
     } catch (error) {
       console.error('퀴즈 로딩 오류:', error);
+      setLoadError(true);
       setModalMessage('퀴즈를 불러오는데 실패했습니다.');
       setShowModal(true);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchRandomQuiz();
   }, []);
 
-  const handleError = (message) => {
-    if (!cameraError) {
+  useEffect(() => {
+    generateRandomQuiz();
+  }, [generateRandomQuiz]);
+
+  const handleQuizComplete = useCallback(() => {
+    setModalMessage('축하합니다! 모든 퀴즈를 완료했습니다!');
+    setIsQuizCompleted(true);
+    setShowModal(true);
+  }, []);
+
+
+  const handleRetry = useCallback(() => {
+    setShowModal(false);
+    navigate('/learning');
+  }, [navigate]);
+
+
+  const handleStreamReady = useCallback((stream) => {
+    if (stream) {
+      setVideoStream(stream);
+      setCameraError(false);
+    } else {
       setCameraError(true);
-      setModalMessage(message);
+      setModalMessage('카메라 연결에 실패했습니다. 카메라 권한을 확인해주세요.');
       setShowModal(true);
     }
-  };
+  }, []);
 
-  const handleModalClose = () => {
-    setShowModal(false);
-  };
+  const handleModalClose = useCallback(() => {
+    if (modalMessage.includes('오답입니다')) {
+      navigate('/learning');
+    } else if (isQuizCompleted) {
+      navigate('/');
+    } else if (loadError) {
+      setShowModal(false);
+      setLoadError(false);
+      generateRandomQuiz();
+    } else {
+      setShowModal(false);
+    }
+  }, [modalMessage, navigate, isQuizCompleted, loadError, generateRandomQuiz]);
 
-  const handleQuizSubmit = async () => {
+  const checkAnswer = useCallback(async () => {
     if (loading) return;
+    
     setLoading(true);
-
     try {
-      const imageData = videoRef.current?.captureFrame();
-      if (!imageData) throw new Error('비디오 프레임 캡처 실패');
-
-      const result = await quizService.submitQuizAnswer(quiz.id, imageData);
-
-      if (result.correct) {
+      if (quizCount >= 4) {
+        handleQuizComplete();
+      } else {
         setModalMessage('정답입니다!');
         setShowModal(true);
-        setTimeout(() => {
-          if (quizCount < 4) {
-            setQuizCount(prev => prev + 1);
-            setShowModal(false);
-            fetchRandomQuiz();
-          } else {
-            setModalMessage('축하합니다! 모든 퀴즈를 완료했습니다.');
-            setShowModal(true);
-          }
+        const timer = setTimeout(() => {
+          generateRandomQuiz();
+          setQuizCount(prev => prev + 1);
+          setShowModal(false);
         }, 2000);
-      } else {
-        setModalMessage('오답입니다! 다시 시도해보세요.');
-        setShowModal(true);
+        return () => clearTimeout(timer);
+
       }
     } catch (error) {
-      console.error('답안 제출 오류:', error);
-      setModalMessage('답안 제출에 실패했습니다.');
+      console.error('퀴즈 검사 중 오류 발생:', error);
+      setModalMessage('오답입니다! 다시 학습하시겠어요?');
       setShowModal(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, quizCount, handleQuizComplete, generateRandomQuiz]);
+
+  const onResultChange = useCallback((isCorrect) => {
+    if (isCorrect) {
+      setModalMessage('정답입니다!');
+    } else {
+      setModalMessage('오답입니다! 다시 학습하시겠어요?');
+    }
+    setShowModal(true);
+    if (!isCorrect) {
+      const timer = setTimeout(() => {
+        setShowModal(false);
+        navigate('/learning');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [navigate]);
 
   return (
     <div className="quiz-page">
-      <h2>퀴즈 화면</h2>
-      <div className="quiz-container">
+      <div className="quiz-section">
         <div className="quiz-content">
-          <QuizControls 
-            quiz={quiz}
-            onSubmit={handleQuizSubmit}
-            loading={loading}
-            difficulty={difficulty}
-            category={category}
-            categories={categories || []}
-            onDifficultyChange={setDifficulty}
-            onCategoryChange={setCategory}
-          />
-        </div>
-        <div className="video-container">
-          <VideoStream 
-            ref={videoRef}
-            onError={handleError}
-          />
+          <h2 className="quiz-question">
+            {loading ? (
+              "퀴즈 로딩중..."
+            ) : quiz ? (
+              `"${quiz.question}" 수어를 보여주세요`
+            ) : loadError ? (
+              "퀴즈 로딩 실패"
+            ) : (
+              "퀴즈를 불러오는 중..."
+            )}
+          </h2>
         </div>
       </div>
-      {showModal && (
+      <div className="video-container">
+        <VideoStream 
+          ref={videoRef}
+          onStreamReady={handleStreamReady}
+          quizAnswer={quiz?.answer}
+          onResultChange={onResultChange}
+        />
+      </div>
+      <div className="quiz-progress">
+        남은 문제: {5 - quizCount} / 5
+      </div>
+      {loading && <LoadingSpinner />}
+      {(showModal || loadError) && (
         <AlertModal
-          message={modalMessage}
+          message={loadError ? "퀴즈를 불러오는데 실패했습니다." : modalMessage}
           onClose={handleModalClose}
+          type={modalMessage.includes('축하합니다') ? 'complete' : modalMessage.includes('정답') ? 'success' : 'error'}
+          showRetryButton={modalMessage.includes('오답')}
+          showHomeButton={isQuizCompleted || loadError}
         />
       )}
     </div>
