@@ -1,10 +1,10 @@
-.modal {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,12 +13,26 @@
 
 .modal-content {
   background-color: white;
-  padding: 30px; /* 크기 증가 */
+  padding: 30px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   text-align: center;
-  width: 400px; /* 너비 증가 */
+  width: 400px;
   max-width: 90%;
+  color: #333;
+  position: relative;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-content p {
@@ -38,4 +52,107 @@
 
 .modal-content button:hover {
   background-color: #FF6B3D;
+}
+
+.modal-content.success {
+  border: 2px solid #4CAF50;
+  color: #4CAF50;
+}
+
+.modal-content.error {
+  border: 2px solid #FF8C61;
+  color: #FF8C61;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #FF8C61;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.modal-buttons button:hover {
+  background-color: #FF7F50;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 성공 모달의 버튼 */
+.modal-content.success .modal-buttons button {
+  background-color: #4CAF50;
+}
+
+.modal-content.success .modal-buttons button:hover {
+  background-color: #45a049;
+}
+
+/* 완료 모달의 버튼 */
+.modal-content.complete .modal-buttons button {
+  background-color: #FFD700;
+  color: #333;
+  font-weight: bold;
+}
+
+.modal-content.complete .modal-buttons button:hover {
+  background-color: #FFC800;
+}
+
+/* 오류 모달의 버튼 */
+.modal-content.error .modal-buttons button {
+  background-color: #FF8C61;
+}
+
+.modal-content.error .modal-buttons button:hover {
+  background-color: #FF7F50;
+}
+
+.modal-content.complete {
+  border: 2px solid #FFD700;
+  color: #FFD700;
+  animation: celebrate 0.5s ease-in-out;
+}
+
+@keyframes celebrate {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.modal-buttons button:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 완료 모달의 버튼 스타일 */
+.modal-content.complete .modal-buttons button {
+  background-color: #FF8C61;
+  color: white;
+  font-weight: bold;
+}
+
+.modal-content.complete .modal-buttons button:hover {
+  background-color: #FF7F50;
 } 

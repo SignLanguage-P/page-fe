@@ -1,26 +1,28 @@
 import React, { useEffect } from 'react';
 import '../css/AlertModal.css';
 
-function AlertModal({ message, onClose }) {
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
-
+function AlertModal({ message, onClose, type = 'success', showRetryButton, showHomeButton }) {
   return (
-    <div className="modal">
-      <div className="modal-content">
+    <div className="modal-overlay">
+      <div className={`modal-content ${type}`}>
         <p>{message}</p>
-        <button onClick={onClose}>닫기</button>
+        <div className="modal-buttons">
+          {showRetryButton ? (
+            <>
+              <button onClick={onClose}>다시 학습하기</button>
+              <button onClick={() => window.location.reload()}>다시 시도하기</button>
+            </>
+          ) : showHomeButton ? (
+            <>
+              <button onClick={() => window.location.href = '/'}>메인으로 돌아가기</button>
+              {type === 'error' && (
+                <button onClick={onClose}>다시 시도하기</button>
+              )}
+            </>
+          ) : (
+            <button onClick={onClose}>확인</button>
+          )}
+        </div>
       </div>
     </div>
   );

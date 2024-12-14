@@ -1,130 +1,159 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VideoStream from '../components/VideoStream';
 import QuizControls from '../components/QuizControls';
 import AlertModal from '../components/AlertModal';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { fetchRandomQuiz } from '../data/quizService';
 import '../css/QuizPage.css';
-import gestureLabels from '../model/gesture_labels.json';
 
 function QuizPage() {
   const [quiz, setQuiz] = useState(null);
   const [videoStream, setVideoStream] = useState(null);
-  const [aiResult, setAiResult] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [quizCount, setQuizCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [cameraError, setCameraError] = useState(false);
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const navigate = useNavigate();
+  const videoRef = useRef(null);
 
-  useEffect(() => {
-    generateRandomQuiz();
-  }, []);
-
-  const generateRandomQuiz = () => {
-    if (!gestureLabels?.labels) {
-      console.error('Labels not found in gesture_labels.json');
-      return;
-    }
-
-    const labels = Object.values(gestureLabels.labels);
-    const randomIndex = Math.floor(Math.random() * labels.length);
-    setQuiz({
-      question: labels[randomIndex],
-      correctAnswer: labels[randomIndex]
-    });
-  };
-
-  const checkAnswer = async () => {
-    setLoading(true);
+  const generateRandomQuiz = useCallback(async () => {
     try {
-      const result = await recognizeSignLanguage();
-      setAiResult(result);
-      
-      if (result === quiz.correctAnswer) {
-        setModalMessage('정답입니다!');
-        setShowModal(true);
-        setTimeout(() => {
-          if (quizCount < 4) {
-            generateRandomQuiz();
-            setQuizCount(quizCount + 1);
-            setShowModal(false);
-          } else {
-            setModalMessage('축하합니다! 모든 퀴즈를 완료했습니다.');
-            setTimeout(() => {
-              navigate('/');
-            }, 3000);
-          }
-        }, 2000);
-      } else {
-        setModalMessage('오답입니다! 잘 모르겠나요? [다시 학습하기]');
-        setShowModal(true);
-      }
+      setLoading(true);
+      setLoadError(false);
+      const quizData = await fetchRandomQuiz();
+      setQuiz(quizData);
     } catch (error) {
-      console.error('퀴즈 검사 중 오류 발생:', error);
-      setModalMessage('오류가 발생했습니다. 다시 시도해주세요.');
+      console.error('퀴즈 로딩 오류:', error);
+      setLoadError(true);
+      setModalMessage('퀴즈를 불러오는데 실패했습니다.');
       setShowModal(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const recognizeSignLanguage = async () => {
-    try {
-      const frame = captureVideoFrame();
-      const response = await fetch('https://your-ai-api.com/api/recognize', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ frame }),
-      });
-      const data = await response.json();
-      return data.result;
-    } catch (error) {
-      console.error('AI 모델 호출 실패:', error);
-      throw new Error('인식 실패');
-    }
-  };
+  useEffect(() => {
+    generateRandomQuiz();
+  }, [generateRandomQuiz]);
 
-  const captureVideoFrame = () => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    if (videoStream) {
-      canvas.width = videoStream.videoWidth;
-      canvas.height = videoStream.videoHeight;
-      context.drawImage(videoStream, 0, 0, canvas.width, canvas.height);
-      return canvas.toDataURL('image/jpeg');
-    }
-    return null;
-  };
+  const handleQuizComplete = useCallback(() => {
+    setModalMessage('축하합니다! 모든 퀴즈를 완료했습니다!');
+    setIsQuizCompleted(true);
+    setShowModal(true);
+  }, []);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setShowModal(false);
     navigate('/learning');
-  };
+  }, [navigate]);
+
+  const handleStreamReady = useCallback((stream) => {
+    if (stream) {
+      setVideoStream(stream);
+      setCameraError(false);
+    } else {
+      setCameraError(true);
+      setModalMessage('카메라 연결에 실패했습니다. 카메라 권한을 확인해주세요.');
+      setShowModal(true);
+    }
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    if (modalMessage.includes('오답입니다')) {
+      navigate('/learning');
+    } else if (isQuizCompleted) {
+      navigate('/');
+    } else if (loadError) {
+      setShowModal(false);
+      setLoadError(false);
+      generateRandomQuiz();
+    } else {
+      setShowModal(false);
+    }
+  }, [modalMessage, navigate, isQuizCompleted, loadError, generateRandomQuiz]);
+
+  const checkAnswer = useCallback(async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    try {
+      if (quizCount >= 4) {
+        handleQuizComplete();
+      } else {
+        setModalMessage('정답입니다!');
+        setShowModal(true);
+        const timer = setTimeout(() => {
+          generateRandomQuiz();
+          setQuizCount(prev => prev + 1);
+          setShowModal(false);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    } catch (error) {
+      console.error('퀴즈 검사 중 오류 발생:', error);
+      setModalMessage('오답입니다! 다시 학습하시겠어요?');
+      setShowModal(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, quizCount, handleQuizComplete, generateRandomQuiz]);
+
+  const onResultChange = useCallback((isCorrect) => {
+    if (isCorrect) {
+      setModalMessage('정답입니다!');
+    } else {
+      setModalMessage('오답입니다! 다시 학습하시겠어요?');
+    }
+    setShowModal(true);
+    if (!isCorrect) {
+      const timer = setTimeout(() => {
+        setShowModal(false);
+        navigate('/learning');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [navigate]);
 
   return (
     <div className="quiz-page">
-      <div className="quiz-progress">
-        문제 {quizCount + 1} / 5
+      <div className="quiz-section">
+        <div className="quiz-content">
+          <h2 className="quiz-question">
+            {loading ? (
+              "퀴즈 로딩중..."
+            ) : quiz ? (
+              `"${quiz.question}" 수어를 보여주세요`
+            ) : loadError ? (
+              "퀴즈 로딩 실패"
+            ) : (
+              "퀴즈를 불러오는 중..."
+            )}
+          </h2>
+        </div>
       </div>
       <div className="video-container">
-        <VideoStream onStreamReady={setVideoStream} />
+        <VideoStream 
+          ref={videoRef}
+          onStreamReady={handleStreamReady}
+          quizAnswer={quiz?.answer}
+          onResultChange={onResultChange}
+        />
       </div>
-      <QuizControls 
-        quiz={quiz} 
-        onSubmit={checkAnswer}
-        loading={loading}
-      />
-      {showModal && (
+      <div className="quiz-progress">
+        남은 문제: {5 - quizCount} / 5
+      </div>
+      {loading && <LoadingSpinner />}
+      {(showModal || loadError) && (
         <AlertModal
-          message={modalMessage}
-          onClose={() => {
-            setShowModal(false);
-            if (modalMessage.includes('오답입니다')) {
-              handleRetry();
-            }
-          }}
+          message={loadError ? "퀴즈를 불러오는데 실패했습니다." : modalMessage}
+          onClose={handleModalClose}
+          type={modalMessage.includes('축하합니다') ? 'complete' : modalMessage.includes('정답') ? 'success' : 'error'}
+          showRetryButton={modalMessage.includes('오답')}
+          showHomeButton={isQuizCompleted || loadError}
         />
       )}
     </div>
