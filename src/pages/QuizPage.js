@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VideoStream from '../components/VideoStream';
@@ -18,6 +19,7 @@ function QuizPage() {
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const navigate = useNavigate();
+
   const videoRef = useRef(null);
 
   const generateRandomQuiz = useCallback(async () => {
@@ -25,6 +27,7 @@ function QuizPage() {
       setLoading(true);
       setLoadError(false);
       const quizData = await fetchRandomQuiz();
+
       setQuiz(quizData);
     } catch (error) {
       console.error('퀴즈 로딩 오류:', error);
@@ -46,10 +49,12 @@ function QuizPage() {
     setShowModal(true);
   }, []);
 
+
   const handleRetry = useCallback(() => {
     setShowModal(false);
     navigate('/learning');
   }, [navigate]);
+
 
   const handleStreamReady = useCallback((stream) => {
     if (stream) {
@@ -92,6 +97,7 @@ function QuizPage() {
           setShowModal(false);
         }, 2000);
         return () => clearTimeout(timer);
+
       }
     } catch (error) {
       console.error('퀴즈 검사 중 오류 발생:', error);
